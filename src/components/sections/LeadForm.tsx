@@ -28,10 +28,8 @@ export function LeadForm() {
     try {
       const db = getDb();
       if (db) {
-        const { addDoc, collection, serverTimestamp } = await import(
-          "firebase/firestore"
-        );
-        await addDoc(collection(db, "leads"), {
+        const { push, ref, serverTimestamp } = await import("firebase/database");
+        await push(ref(db, "leads"), {
           ...data,
           createdAt: serverTimestamp(),
           source: "landing-page",
