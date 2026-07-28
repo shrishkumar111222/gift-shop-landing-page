@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { businessTypes } from "@/lib/constants";
+import { getDb } from "@/lib/firebase";
 
 const fieldClass =
   "w-full rounded-xl border border-ink/10 bg-white/80 px-4 py-3.5 text-sm text-ink placeholder:text-ink/35 outline-none transition-all duration-200 focus:border-accent focus:ring-4 focus:ring-accent/10";
@@ -15,14 +16,38 @@ const labelClass = "text-xs font-semibold uppercase tracking-wider text-ink/45";
 export function LeadForm() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    setError(null);
+
+    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+
+    try {
+      const db = getDb();
+      if (db) {
+        const { addDoc, collection, serverTimestamp } = await import(
+          "firebase/firestore"
+        );
+        await addDoc(collection(db, "leads"), {
+          ...data,
+          createdAt: serverTimestamp(),
+          source: "landing-page",
+        });
+      } else {
+        console.warn("Firebase not configured — lead not saved:", data);
+      }
       setSubmitted(true);
-    }, 900);
+    } catch (err) {
+      console.error("Lead submission failed:", err);
+      setError(
+        "Could not send your request. Please try again or message us on WhatsApp."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -79,7 +104,7 @@ export function LeadForm() {
                 >
                   <div className="flex flex-col gap-2">
                     <label className={labelClass}>Business Name</label>
-                    <input required name="businessName" className={fieldClass} placeholder="Wonder Gifts" />
+                    <input required name="businessName" className={fieldClass} placeholder="Your business name" />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className={labelClass}>Owner Name</label>
@@ -128,6 +153,11 @@ export function LeadForm() {
                     />
                   </div>
                   <div className="sm:col-span-2">
+                    {error && (
+                      <p className="mb-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                        {error}
+                      </p>
+                    )}
                     <Button type="submit" variant="primary" fullWidth className="py-4 text-base">
                       {submitting ? "Sending..." : "Request Free Demo"}
                     </Button>

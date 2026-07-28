@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowUpRight, Check } from "lucide-react";
+import Image from "next/image";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { concepts } from "@/lib/constants";
 
@@ -26,13 +27,20 @@ export function Concepts() {
               whileHover={{ y: -10, scale: 1.02 }}
               className="group relative flex flex-col overflow-hidden rounded-3xl border border-ink/10 bg-white shadow-soft transition-shadow duration-500 hover:shadow-lifted"
             >
-              <div className={`relative h-40 w-full overflow-hidden bg-gradient-to-br ${concept.accent}`}>
-                <div className="absolute inset-0 bg-grid opacity-20" />
+              <div className={`relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br ${concept.accent}`}>
+                <Image
+                  src={concept.image}
+                  alt={`${concept.name} website concept preview`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/5 to-transparent" />
                 <div className="absolute inset-x-5 bottom-5 flex items-center justify-between">
                   <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
                     Concept {index + 1}
                   </span>
-                  <ArrowUpRight className="h-5 w-5 text-white/80 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  <ArrowUpRight className="h-5 w-5 text-white/90 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </div>
               </div>
 

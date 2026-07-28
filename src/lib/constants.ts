@@ -1,3 +1,8 @@
+import type { StaticImageData } from "next/image";
+import creativeExperienceImg from "../../public/concepts/creative-experience.jpg";
+import modernCommerceImg from "../../public/concepts/modern-commerce.jpg";
+import premiumLuxuryImg from "../../public/concepts/premium-luxury.jpg";
+
 export const WHATSAPP_LINK = "https://wa.me/919905429650";
 
 export const trustBadges: string[] = [
@@ -16,6 +21,7 @@ export type Concept = {
   perfectFor: string[];
   demoUrl: string;
   accent: string;
+  image: StaticImageData;
 };
 
 export const concepts: Concept[] = [
@@ -32,6 +38,7 @@ export const concepts: Concept[] = [
     demoUrl:
       "https://shrishkumar111222.github.io/Premium-LUXERY-GIFT-STORE-ARCHITECTURE/",
     accent: "from-[#111111] to-[#2563EB]",
+    image: premiumLuxuryImg,
   },
   {
     id: "modern-commerce",
@@ -40,6 +47,7 @@ export const concepts: Concept[] = [
     perfectFor: ["Toy Shops", "Gift Shops", "Stationery", "Kids Store"],
     demoUrl: "https://shrishkumar111222.github.io/Modern-Commerce-GIFT-Website-/",
     accent: "from-[#2563EB] to-[#60a5fa]",
+    image: modernCommerceImg,
   },
   {
     id: "creative-experience",
@@ -53,6 +61,7 @@ export const concepts: Concept[] = [
     ],
     demoUrl: "https://shrishkumar111222.github.io/refactored-eureka/",
     accent: "from-[#111111] to-[#4b5563]",
+    image: creativeExperienceImg,
   },
 ];
 
