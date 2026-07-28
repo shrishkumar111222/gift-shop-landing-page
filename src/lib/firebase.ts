@@ -1,28 +1,46 @@
-import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
-import { getDatabase, type Database } from "firebase/database";
+const DATABASE_URL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+export const isFirebaseConfigured = Boolean(DATABASE_URL);
 
-export const isFirebaseConfigured = Boolean(
-  firebaseConfig.apiKey && firebaseConfig.databaseURL
-);
+/**
+ * Writes a lead to the `leads` node using the Realtime Database REST API.
+ *
+ * REST is used rather than the JS SDK deliberately: the SDK holds a
+ * WebSocket open and its write promise only settles once the server
+ * acknowledges, so a stalled socket leaves the form spinning forever. A
+ * plain POST either succeeds or fails, and keeps the SDK out of the bundle.
+ *
+ * Returns false when the database URL is absent so the caller can decide
+ * what to show; throws when the request itself fails.
+ */
+export async function saveLead(
+  data: Record<string, unknown>
+): Promise<boolean> {
+  if (!DATABASE_URL) return false;
 
-let app: FirebaseApp | undefined;
-let db: Database | undefined;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
-export function getDb(): Database | undefined {
-  if (!isFirebaseConfigured) return undefined;
-  if (!db) {
-    app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-    db = getDatabase(app);
+  try {
+    const response = await fetch(`${DATABASE_URL}/leads.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...data,
+        createdAt: { ".sv": "timestamp" },
+        source: "landing-page",
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Realtime Database rejected the write (HTTP ${response.status})`
+      );
+    }
+
+    return true;
+  } finally {
+    clearTimeout(timeout);
   }
-  return db;
 }

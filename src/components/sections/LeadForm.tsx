@@ -6,7 +6,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { businessTypes } from "@/lib/constants";
-import { getDb } from "@/lib/firebase";
+import { saveLead } from "@/lib/firebase";
 
 const fieldClass =
   "w-full rounded-xl border border-ink/10 bg-white/80 px-4 py-3.5 text-sm text-ink placeholder:text-ink/35 outline-none transition-all duration-200 focus:border-accent focus:ring-4 focus:ring-accent/10";
@@ -26,15 +26,8 @@ export function LeadForm() {
     const data = Object.fromEntries(new FormData(e.currentTarget).entries());
 
     try {
-      const db = getDb();
-      if (db) {
-        const { push, ref, serverTimestamp } = await import("firebase/database");
-        await push(ref(db, "leads"), {
-          ...data,
-          createdAt: serverTimestamp(),
-          source: "landing-page",
-        });
-      } else {
+      const saved = await saveLead(data);
+      if (!saved) {
         console.warn("Firebase not configured — lead not saved:", data);
       }
       setSubmitted(true);
@@ -62,13 +55,17 @@ export function LeadForm() {
 
         <div className="relative mt-14 overflow-hidden rounded-[2rem] shadow-lifted">
           <div className="glass-card relative rounded-[2rem] p-6 sm:p-10">
-            <AnimatePresence mode="wait">
+            {/*
+              No `mode="wait"`: it holds the incoming child back until the
+              outgoing one finishes exiting, and a stalled exit animation
+              leaves the panel frozen on the submitted form forever.
+            */}
+            <AnimatePresence>
               {submitted ? (
                 <motion.div
                   key="success"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                   className="flex flex-col items-center gap-4 py-16 text-center"
                 >
@@ -93,10 +90,8 @@ export function LeadForm() {
                   </button>
                 </motion.div>
               ) : (
-                <motion.form
+                <form
                   key="form"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
                   onSubmit={handleSubmit}
                   className="grid grid-cols-1 gap-5 sm:grid-cols-2"
                 >
@@ -160,7 +155,7 @@ export function LeadForm() {
                       {submitting ? "Sending..." : "Request Free Demo"}
                     </Button>
                   </div>
-                </motion.form>
+                </form>
               )}
             </AnimatePresence>
           </div>
