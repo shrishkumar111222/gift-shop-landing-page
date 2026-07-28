@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: __dirname,
+  output: "export",
+  basePath: "/gift-shop-landing-page",
+  images: {
+    unoptimized: true,
   },
 };
 
